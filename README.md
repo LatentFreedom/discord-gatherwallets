@@ -17,3 +17,8 @@ Get a bot to gather wallets for a presale in discord.
 DISCORD_TOKEN=
 MONGO_URI=mongodb://localhost:27017
 ```
+
+## Discord / Commands
+1. **checkwallet:** check to see the ETH address you added to the presale list
+2. **setwallet:** Set ETH wallet to the presale list
+3. **updatewallet:** Update ETH wallet on presale list
