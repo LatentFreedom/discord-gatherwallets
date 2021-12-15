@@ -108,25 +108,29 @@ const updateWallet = async (wallet, name) => {
 }
 
 client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isCommand()) { return; }
-    const { commandName, options } = interaction;
-    const user = interaction.user;
-    let message = '';
-    await interaction.deferReply({
-        ephemeral: true
-    });
-    if (commandName === 'checkwallet') {
-        message = await checkWallet(user.username);
-    } else if (commandName === 'setwallet') {
-        const wallet = options.getString('wallet');
-        message = await setWallet(wallet, user);
-    } else if (commandName === 'updatewallet') {
-        const wallet = options.getString('wallet');
-        message = await updateWallet(wallet, user.username);
+    try {
+        if (!interaction.isCommand()) { return; }
+        const { commandName, options } = interaction;
+        const user = interaction.user;
+        let message = '';
+        await interaction.deferReply({
+            ephemeral: true
+        });
+        if (commandName === 'checkwallet') {
+            message = await checkWallet(user.username);
+        } else if (commandName === 'setwallet') {
+            const wallet = options.getString('wallet');
+            message = await setWallet(wallet, user);
+        } else if (commandName === 'updatewallet') {
+            const wallet = options.getString('wallet');
+            message = await updateWallet(wallet, user.username);
+        }
+        await interaction.editReply({
+            content: message,
+        });
+    } catch (err) {
+        console.log(err);
     }
-    await interaction.editReply({
-        content: message,
-    });
 })
 
 client.login(process.env.DISCORD_TOKEN);
