@@ -7,7 +7,7 @@ const client = new Client({
 });
 
 client.on('ready', () => {
-    console.log('Wallet Gather Running...');
+    console.log('Gather Wallets Running...');
     createCommands();
 });
 
@@ -55,17 +55,12 @@ const checkWallet = async (name) => {
     const clientDb = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true });
     const db = clientDb.db('gatherwallets');
     let message = '';
-    try {
-        const doc = await db.collection('wallets').findOne({name:name});
-        if (!doc) {
-            message = `You have not added a wallet **${name}**. Make sure to do so before wallet collection is closed.`;
-        } else {
-            const wallet = doc.wallet;
-            message = `Thanks, **${name}**. Your current wallet saved is **${wallet}**.`;
-        }
-    } catch (err) {
-        console.log(err);
-        message = `Sorry, **${name}**. There was an error checking for your wallet.`;
+    const doc = await db.collection('wallets').findOne({name:name});
+    if (!doc) {
+        message = `You have not added a wallet **${name}**. Make sure to do so before wallet collection is closed.`;
+    } else {
+        const wallet = doc.wallet;
+        message = `Thanks, **${name}**. Your current wallet saved is **${wallet}**.`;
     }
     clientDb.close();
     return message;
@@ -77,8 +72,6 @@ const setWallet = async (wallet, user) => {
     const db = clientDb.db('gatherwallets');
     const walletSaved = await db.collection('wallets').findOne({name:name});
     let message = '';
-    console.log(user);
-    console.log(walletSaved);
     if (!walletSaved) {
         await db.collection('wallets').insertOne(
             {
@@ -95,14 +88,11 @@ const setWallet = async (wallet, user) => {
     return message;
 }
 
-const updateWallet = async (wallet, user) => {
-    const name = user.username;
+const updateWallet = async (wallet, name) => {
     const clientDb = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true });
     const db = clientDb.db('gatherwallets');
     const walletSaved = await db.collection('wallets').findOne({name:name});
     let message = '';
-    console.log(user);
-    console.log(walletSaved);
     if (!walletSaved) {
         message = `You have not added a wallet **${name}**. Make sure to do so before wallet collection is closed.`;
     } else {
@@ -120,40 +110,23 @@ const updateWallet = async (wallet, user) => {
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) { return; }
     const { commandName, options } = interaction;
+    const user = interaction.user;
+    let message = '';
+    await interaction.deferReply({
+        ephemeral: true
+    });
     if (commandName === 'checkwallet') {
-        // Process check wallet
-        await interaction.deferReply({
-            ephemeral: true
-        });
-        const user = interaction.user;
-        const name = user.username;
-        const message = await checkWallet(name);
-        await interaction.editReply({
-            content: message,
-        });
+        message = await checkWallet(user.username);
     } else if (commandName === 'setwallet') {
-        // Process set wallet
-        await interaction.deferReply({
-            ephemeral: true,
-        });
         const wallet = options.getString('wallet');
-        const user = interaction.user;
-        const message = await setWallet(wallet, user);
-        await interaction.editReply({
-            content: message,
-        });
+        message = await setWallet(wallet, user);
     } else if (commandName === 'updatewallet') {
-        // Process update wallet
-        await interaction.deferReply({
-            ephemeral: true,
-        });
         const wallet = options.getString('wallet');
-        const user = interaction.user;
-        const message = await updateWallet(wallet, user);
-        await interaction.editReply({
-            content: message,
-        });
+        message = await updateWallet(wallet, user.username);
     }
+    await interaction.editReply({
+        content: message,
+    });
 })
 
 client.login(process.env.DISCORD_TOKEN);
