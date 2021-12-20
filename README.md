@@ -16,6 +16,8 @@ Get a bot to gather wallets for a presale in discord.
 ```
 DISCORD_TOKEN=
 MONGO_URI=mongodb://localhost:27017
+# channel id for the channel that will reply to the commands
+CHANNEL_ID=
 ```
 
 ## Discord / Commands

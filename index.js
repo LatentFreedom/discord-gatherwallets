@@ -110,6 +110,14 @@ const updateWallet = async (wallet, name) => {
 client.on('interactionCreate', async (interaction) => {
     try {
         if (!interaction.isCommand()) { return; }
+        // Check if command was sent in desired channel
+        if (interaction.channel.id !== process.env.CHANNEL_ID) {
+            await interaction.reply({
+                ephemeral: true,
+                content: 'This command cannot be used in this channel.'
+            });
+            return;
+        }
         const { commandName, options } = interaction;
         const user = interaction.user;
         let message = '';
