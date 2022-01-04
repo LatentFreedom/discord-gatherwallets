@@ -3,52 +3,61 @@ const { MongoClient } = require("mongodb");
 require('dotenv').config();
 
 const client = new Client({
-    intents : [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES]
+    intents : [Intents.FLAGS.GUILDS]
 });
 
 client.on('ready', () => {
     console.log('Gather Wallets Running...');
-    createCommands();
+    createCommandsForGuilds();
 });
 
-const createCommands = () => {
-    const Guilds = client.guilds.cache.map(guild => guild.id);
-    // Add commands to all guilds
-    Guilds.forEach(guildId => {
-        const guild = client.guilds.cache.get(guildId);
-        let commands = guild.commands;
-        // check wallet
-        commands?.create({
-            name: "checkwallet",
-            description: "check to see the ETH address you added to the presale list"
-        });
-        // set wallet
-        commands?.create({
-            name: "setwallet",
-            description: "Set ETH wallet to the presale list",
-            options: [
-                {
-                    name: "wallet",
-                    description: "ETH wallet address",
-                    required: true,
-                    type: Constants.ApplicationCommandOptionTypes.STRING
-                }
-            ]
-        })
-        // update wallet
-        commands?.create({
-            name: "updatewallet",
-            description: "Update ETH wallet on presale list",
-            options: [
-                {
-                    name: "wallet",
-                    description: "ETH wallet address",
-                    required: true,
-                    type: Constants.ApplicationCommandOptionTypes.STRING
-                }
-            ]
-        })
+const createCommands = (guildId) => {
+    const guild = client.guilds.cache.get(guildId);
+    let commands = guild.commands;
+    // check wallet
+    commands?.create({
+        name: "checkwallet",
+        description: "Check to see the ETH address added to the list"
     });
+    // set wallet
+    commands?.create({
+        name: "setwallet",
+        description: "Add ETH wallet to the list",
+        options: [
+            {
+                name: "wallet",
+                description: "ETH wallet address",
+                required: true,
+                type: Constants.ApplicationCommandOptionTypes.STRING
+            }
+        ]
+    })
+    // update wallet
+    commands?.create({
+        name: "updatewallet",
+        description: "Update ETH wallet on the list",
+        options: [
+            {
+                name: "wallet",
+                description: "ETH wallet address",
+                required: true,
+                type: Constants.ApplicationCommandOptionTypes.STRING
+            }
+        ]
+    });
+}
+
+const createCommandsForGuilds = () => {
+    // Check if guild id set
+    if (process.env.GUILD_ID) {
+        createCommands(process.env.GUILD_ID);
+    } else {
+        const Guilds = client.guilds.cache.map(guild => guild.id);
+        // Add commands to all guilds
+        Guilds.forEach(guildId => {
+            createCommands(guildId);
+        });
+    }
 }
 
 const checkWallet = async (name) => {
@@ -68,7 +77,7 @@ const checkWallet = async (name) => {
 
 const setWallet = async (wallet, user) => {
     const name = user.username;
-    const clientDb = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true });
+    const clientDb = MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true });
     const db = clientDb.db('gatherwallets');
     const walletSaved = await db.collection('wallets').findOne({name:name});
     let message = '';
@@ -111,10 +120,19 @@ client.on('interactionCreate', async (interaction) => {
     try {
         if (!interaction.isCommand()) { return; }
         // Check if command was sent in desired channel
-        if (interaction.channel.id !== process.env.CHANNEL_ID) {
+        if (process.env.CHANNEL_ID && interaction.channel.id !== process.env.CHANNEL_ID) {
             await interaction.reply({
                 ephemeral: true,
                 content: 'This command cannot be used in this channel.'
+            });
+            return;
+        }
+        // Check if user has desired role name
+        if (process.env.ROLE_ID && !interaction.member.roles.cache.has(process.env.ROLE_ID)) {
+            const role = interaction.guild.roles.cache.get(process.env.ROLE_ID);
+            await interaction.reply({
+                ephemeral: true,
+                content: `This command cannot be used without the **${role}** role.`
             });
             return;
         }

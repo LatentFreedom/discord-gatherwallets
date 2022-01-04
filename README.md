@@ -1,5 +1,5 @@
 # Discord Gather Wallets Bot
-Get a bot to gather wallets for a presale in discord.
+Get a bot to gather wallets in discord.
 
 ## Sites Used
 1. Discord Dev URL **[https://discord.com/developers/applications](https://discord.com/developers/applications)**
@@ -16,11 +16,15 @@ Get a bot to gather wallets for a presale in discord.
 ```
 DISCORD_TOKEN=
 MONGO_URI=mongodb://localhost:27017
+# guild id for the guild that will accept commands
+GUILD_ID=
 # channel id for the channel that will reply to the commands
 CHANNEL_ID=
+# role id that user must have
+ROLE_ID=
 ```
 
 ## Discord / Commands
-1. **checkwallet:** check to see the ETH address you added to the presale list
-2. **setwallet:** Set ETH wallet to the presale list
-3. **updatewallet:** Update ETH wallet on presale list
+1. **checkwallet:** check to see the ETH address user added to db
+2. **setwallet:** Set ETH wallet in db
+3. **updatewallet:** Update ETH wallet in db
