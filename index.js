@@ -77,7 +77,7 @@ const checkWallet = async (name) => {
 
 const setWallet = async (wallet, user) => {
     const name = user.username;
-    const clientDb = MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true });
+    const clientDb = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true });
     const db = clientDb.db('gatherwallets');
     const walletSaved = await db.collection('wallets').findOne({name:name});
     let message = '';
